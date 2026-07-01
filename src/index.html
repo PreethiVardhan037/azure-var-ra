@@ -285,7 +285,7 @@
       <p class="chalk-note">Detect Language, PII and Summarize Text</p>
 
       <ol class="steps">
-        <li><span class="chalk-num">1</span> Paste any review, tweet, or comment</li>
+        <li><span class="chalk-num">1</span> Paste/type any Information</li>
         <li><span class="chalk-num">2</span> We send it to Azure AI Language</li>
         <li><span class="chalk-num">3</span> Your copy comes back marked up &amp; stamped</li>
       </ol>
@@ -294,13 +294,13 @@
 
   <main class="desk">
     <section class="sheet input-sheet">
-      <label for="reviewInput" class="sheet-label">Paste the review</label>
+      <label for="reviewInput" class="sheet-label">Paste/type the text</label>
       <textarea id="reviewInput" rows="8" placeholder="e.g. &ldquo;The battery life is incredible but the camera app crashes constantly. Customer support at Acme was friendly though.&rdquo;"></textarea>
 
       <div class="sheet-footer">
         <span id="charCount" class="mono small">0 characters</span>
         <button id="analyzeBtn" class="stamp-button">
-          <span class="btn-label">Grade this review</span>
+          <span class="btn-label">Analyze</span>
         </button>
       </div>
       <p id="errorMsg" class="error-msg" hidden></p>

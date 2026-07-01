@@ -408,13 +408,7 @@
 
     stampBadge.textContent = data.language.toUpperCase();
     stampBadge.className = "stamp";
-
-    const confidence = Math.round(data.languageConfidence * 100);
-
-    barPos.style.width = confidence + "%";
-    barNeu.style.width = "0%";
-    barNeg.style.width = "0%";
-
+    
     markedText.innerHTML = `
         <b>Detected Language</b><br>
         ${escapeHtml(data.language)}<br><br>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Review Analyser — graded by AI</title>
+<title>Language AI Analyzer</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Caveat:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -281,8 +281,8 @@
   <header class="board">
     <div class="board-inner">
       <p class="eyebrow">Azure AI Language · Text Analytics demo</p>
-      <h1 class="typewriter-title">Review Analyser</h1>
-      <p class="chalk-note">paste a review &mdash; get it graded in real time</p>
+      <h1 class="typewriter-title">Language AI Analyzer</h1>
+      <p class="chalk-note">Detect Language, PII and Summarize Text</p>
 
       <ol class="steps">
         <li><span class="chalk-num">1</span> Paste any review, tweet, or comment</li>
@@ -309,14 +309,14 @@
     <section id="resultsSheet" class="sheet results-sheet" hidden>
       <div class="margin-rail">
         <div id="stampBadge" class="stamp" aria-hidden="true">PENDING</div>
-        <div class="confidence-block">
+        <!-- <div class="confidence-block">
           <p class="mono small label">confidence</p>
           <div class="bars">
             <div class="bar-row"><span class="mono tiny">pos</span><span class="bar"><span id="barPos" class="bar-fill pos"></span></span></div>
             <div class="bar-row"><span class="mono tiny">neu</span><span class="bar"><span id="barNeu" class="bar-fill neu"></span></span></div>
             <div class="bar-row"><span class="mono tiny">neg</span><span class="bar"><span id="barNeg" class="bar-fill neg"></span></span></div>
           </div>
-        </div>
+        </div> -->
       </div>
 
       <div class="page-body">
@@ -347,9 +347,7 @@
   const stampBadge = document.getElementById('stampBadge');
   const markedText = document.getElementById('markedText');
   const entityList = document.getElementById('entityList');
-  const barPos = document.getElementById('barPos');
-  const barNeu = document.getElementById('barNeu');
-  const barNeg = document.getElementById('barNeg');
+ 
 
   textarea.addEventListener('input', () => {
     charCount.textContent = `${textarea.value.length} characters`;
@@ -404,43 +402,64 @@
   }
 
   function renderResults(originalText, data) {
-    const { sentiment, confidenceScores, keyPhrases, entities } = data;
 
-    stampBadge.textContent = sentiment.toUpperCase();
-    stampBadge.className = 'stamp ' + sentiment.toLowerCase();
+    stampBadge.textContent = data.languageCode.toUpperCase();
+    stampBadge.className = "stamp";
 
-    const pos = Math.round((confidenceScores.positive || 0) * 100);
-    const neu = Math.round((confidenceScores.neutral || 0) * 100);
-    const neg = Math.round((confidenceScores.negative || 0) * 100);
-    barPos.style.width = pos + '%';
-    barNeu.style.width = neu + '%';
-    barNeg.style.width = neg + '%';
+    markedText.innerHTML = `
+        <b>Detected Language</b><br>
+        ${escapeHtml(data.language)}<br><br>
 
-    markedText.innerHTML = highlightPhrases(originalText, keyPhrases || []);
+        <b>Language Code</b><br>
+        ${escapeHtml(data.languageCode)}<br><br>
 
-    if (entities && entities.length) {
-      entityList.innerHTML = entities
-        .map(e => `<span class="entity-chip">${escapeHtml(e.text)}<span class="cat">${escapeHtml(e.category)}</span></span>`)
-        .join('');
+        <b>Confidence</b><br>
+        ${(data.languageConfidence * 100).toFixed(2)}%
+    `;
+
+    if (data.piiEntities.length) {
+
+        entityList.innerHTML = `
+            <p><b>Redacted Text</b></p>
+            <p>${escapeHtml(data.redactedText)}</p>
+
+            <br>
+
+            <p><b>Detected PII</b></p>
+
+            ${data.piiEntities.map(e => `
+                <div class="entity-chip">
+                    ${escapeHtml(e.text)}
+                    <span class="cat">
+                        ${escapeHtml(e.category)}
+                        (${(e.confidence*100).toFixed(1)}%)
+                    </span>
+                </div>
+            `).join("")}
+
+        `;
+
     } else {
-      entityList.innerHTML = '<span class="entity-empty">no named entities found</span>';
+
+        entityList.innerHTML = `
+            <p><b>Redacted Text</b></p>
+            <p>${escapeHtml(data.redactedText)}</p>
+
+            <br>
+
+            <span class="entity-empty">
+                No PII detected
+            </span>
+        `;
     }
 
     resultsSheet.hidden = false;
-    resultsSheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
 
-  function highlightPhrases(text, phrases) {
-    if (!phrases.length) return escapeHtml(text);
+    resultsSheet.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+    });
 
-    const sorted = [...phrases].sort((a, b) => b.length - a.length);
-    const safe = escapeHtml(text);
-    const escapedPattern = new RegExp(
-      `(${sorted.map(p => escapeHtml(p).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`,
-      'gi'
-    );
-
-    return safe.replace(escapedPattern, '<mark>$1</mark>');
   }
 
   function escapeHtml(str) {

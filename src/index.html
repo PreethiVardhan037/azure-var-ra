@@ -347,6 +347,9 @@
   const stampBadge = document.getElementById('stampBadge');
   const markedText = document.getElementById('markedText');
   const entityList = document.getElementById('entityList');
+  const barPos = document.getElementById('barPos');
+  const barNeu = document.getElementById('barNeu');
+  const barNeg = document.getElementById('barNeg');
  
 
   textarea.addEventListener('input', () => {
@@ -371,7 +374,7 @@
     setLoading(true);
 
     try {
-      const res = await fetch('/api/analyze', {
+      const res = await fetch("/api/analyze", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -403,8 +406,14 @@
 
   function renderResults(originalText, data) {
 
-    stampBadge.textContent = data.languageCode.toUpperCase();
+    stampBadge.textContent = data.language.toUpperCase();
     stampBadge.className = "stamp";
+
+    const confidence = Math.round(data.languageConfidence * 100);
+
+    barPos.style.width = confidence + "%";
+    barNeu.style.width = "0%";
+    barNeg.style.width = "0%";
 
     markedText.innerHTML = `
         <b>Detected Language</b><br>
@@ -417,7 +426,7 @@
         ${(data.languageConfidence * 100).toFixed(2)}%
     `;
 
-    if (data.piiEntities.length) {
+    if (data.piiEntities && data.piiEntities.length) {
 
         entityList.innerHTML = `
             <p><b>Redacted Text</b></p>
@@ -463,6 +472,7 @@
   }
 
   function escapeHtml(str) {
+    str = String(str);
     return str
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')

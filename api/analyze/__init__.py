@@ -40,28 +40,30 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
         language_doc = _call_language("LanguageDetection", text)["results"]["documents"][0]
         pii_doc = _call_language("PiiEntityRecognition", text)["results"]["documents"][0]
         # entity_doc = _call_language("EntityRecognition", text)["results"]["documents"][0]
-    except Exception:
+    except Exception as e:
         logging.exception("Azure AI Language call failed")
         return _json_response(
-            {"error": "Azure AI Language request failed. Check key/endpoint/quota."}, 502
+            {"error": str(e)}, 500
         )
 
     result = {
-    "language": language_doc["detectedLanguage"]["name"],
-    "languageCode": language_doc["detectedLanguage"]["iso6391Name"],
-    "languageConfidence": language_doc["detectedLanguage"]["confidenceScore"],
+        "language": language_doc["detectedLanguage"]["name"],
+        "languageCode": language_doc["detectedLanguage"]["iso6391Name"],
+        "languageConfidence": language_doc["detectedLanguage"]["confidenceScore"],
 
-    "redactedText": pii_doc.get("redactedText", ""),
+        "redactedText": pii_doc.get("redactedText", ""),
 
-    "piiEntities": [
-        {
-            "text": entity["text"],
-            "category": entity["category"],
-            "confidence": entity["confidenceScore"]
-        }
-        for entity in pii_doc.get("entities", [])
-    ]
-}
+        "piiEntities": [
+            {
+                "text": entity["text"],
+                "category": entity["category"],
+                "confidence": entity["confidenceScore"]
+            }
+            for entity in pii_doc.get("entities", [])
+        ]
+    }
+
+    return _json_response(result, 200)
 
 
 def _call_language(kind: str, text: str) -> dict:
